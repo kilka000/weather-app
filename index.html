@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гидрометцентр - Погода</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #ffc6c4; }
+        .navbar { background: #9b5e61; padding: 15px 5%; position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; z-index: 1000; }
+        .logo { color: #e9e7e5; font-size: 24px; font-weight: bold; }
+        .logo span { color: #96aba2; }
+        .nav-links { display: flex; gap: 30px; flex-wrap: wrap; }
+        .nav-links a { color: #e9e7e5; text-decoration: none; font-weight: 500; }
+        .nav-links a:hover { color: #96aba2; }
+        .hero { min-height: 100vh; background: linear-gradient(135deg, #e3a09a, #c97d77); display: flex; align-items: center; justify-content: center; text-align: center; padding: 100px 20px 50px; }
+        .hero-content h1 { font-size: 48px; color: white; margin-bottom: 20px; }
+        .hero-content p { font-size: 20px; color: white; margin-bottom: 30px; }
+        .btn { display: inline-block; background: #96aba2; color: white; padding: 15px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: 0.3s; }
+        .btn:hover { transform: scale(1.05); }
+        .ad { background: #ffc6c4; padding: 60px 20px; }
+        .news-title { text-align: center; font-size: 36px; color: #9b5e61; margin-bottom: 40px; }
+        .ad-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .ad-card { background: #fff5f4; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s; }
+        .ad-card:hover { transform: translateY(-5px); }
+        .ad-card h2 { color: #f79996; margin-bottom: 15px; font-size: 22px; }
+        .ad-card p { color: #666; line-height: 1.6; }
+        .weather-section { padding: 80px 5%; background: #ffefed; text-align: center; }
+        .section-title { font-size: 36px; color: #9b5e61; margin-bottom: 15px; }
+        .section-subtitle { color: #e3a09a; margin-bottom: 40px; }
+        .weather-card { background: white; max-width: 450px; margin: 0 auto; border-radius: 30px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .search-box { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .search-box input { flex: 1; padding: 12px 20px; border: 2px solid #ddd; border-radius: 50px; font-size: 16px; }
+        .search-box button { background: #96aba2; color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; transition: 0.3s; }
+        .search-box button:hover { background: #c3d2cb; }
+        .weather-icon { font-size: 80px; margin: 20px 0; }
+        .temp { font-size: 54px; font-weight: bold; color: #e3a09a; }
+        .weather-desc { color: #666; margin: 10px 0; font-size: 18px; text-transform: capitalize; }
+        .weather-details { display: flex; justify-content: space-around; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; flex-wrap: wrap; gap: 15px; }
+        .loader { display: none; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #9b5e61; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-msg { color: #d9534f; margin-top: 15px; display: none; }
+        .services { padding: 80px 5%; background: white; text-align: center; }
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; max-width: 1200px; margin: 40px auto 0; }
+        .service-card { padding: 30px; background: #ffefed; border-radius: 20px; transition: 0.3s; }
+        .service-card:hover { background: #ffd3cf; transform: translateY(-5px); }
+        .service-icon { font-size: 50px; margin-bottom: 20px; }
+        .subscribe { padding: 80px 5%; background: #96aba2; color: white; text-align: center; }
+        .subscribe-form { max-width: 500px; margin: 30px auto 0; display: flex; gap: 10px; flex-wrap: wrap; }
+        .subscribe-form input { flex: 1; padding: 15px; border: none; border-radius: 50px; font-size: 16px; }
+        .subscribe-form button { background: #e3a09a; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; }
+        .footer { background: #9b5e61; color: white; text-align: center; padding: 30px; }
+        .note { font-size: 12px; color: #999; margin-top: 15px; text-align: center; }
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 32px; }
+            .section-title { font-size: 28px; }
+            .navbar { flex-direction: column; gap: 15px; }
+            .nav-links { justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .hero-content h1 { font-size: 24px; }
+            .temp { font-size: 40px; }
+            .weather-icon { font-size: 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">Гидромет<span>центр</span></div>
+        <div class="nav-links">
+            <a href="#home">Главная</a>
+            <a href="#ad">Новости</a>
+            <a href="#weather">Погода</a>
+            <a href="#services">Услуги</a>
+            <a href="#subscribe">Подписка</a>
+        </div>
+    </div>
+
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Точный прогноз погоды<br>по всей России</h1>
+            <p>Реальные данные с метеостанций</p>
+            <a href="#weather" class="btn">Узнать погоду →</a>
+        </div>
+    </section>
+    
+    <section id="ad" class="ad">
+        <h2 class="news-title">Новости</h2>
+        <div class="ad-cards">
+            <div class="ad-card"><h2>⚠️ Опасные явления</h2><p>Прогноз опасных и неблагоприятных явлений на реках РФ.</p></div>
+            <div class="ad-card"><h2>☀️ Солнечные выходные</h2><p>Антициклон обеспечит малооблачную погоду в ЦФО.</p></div>
+            <div class="ad-card"><h2>🌊 Гидрологический обзор</h2><p>Развитие половодья на реках Сибири и Дальнего Востока.</p></div>
+        </div>
+    </section>
+
+    <section id="weather" class="weather-section">
+        <h2 class="section-title">Погода сейчас</h2>
+        <div class="weather-card">
+            <div class="search-box">
+                <input type="text" id="cityInput" placeholder="Город" value="Moscow">
+                <button id="getWeatherBtn">🔍 Узнать</button>
+            </div>
+            <div class="loader" id="loader"></div>
+            <div class="error-msg" id="errorMsg"></div>
+            <div id="weatherDisplay">
+                <div class="weather-icon" id="weatherIcon">🌍</div>
+                <div class="temp" id="temp">--°C</div>
+                <div class="weather-desc" id="desc">--</div>
+                <div class="weather-details">
+                    <div>💧 Влажность: <span id="humidity">--</span>%</div>
+                    <div>💨 Ветер: <span id="wind">--</span> м/с</div>
+                    <div>📊 Давление: <span id="pressure">--</span> гПа</div>
+                </div>
+            </div>
+            <div class="note">📌 Данные с метеостанции (может отличаться от городской температуры на 3-8°C)</div>
+        </div>
+    </section>
+
+    <section id="services" class="services">
+        <h2 class="section-title">Наши услуги</h2>
+        <div class="services-grid">
+            <div class="service-card"><div class="service-icon">🌡️</div><h3>Точный прогноз</h3></div>
+            <div class="service-card"><div class="service-icon">📱</div><h3>Мобильное приложение</h3></div>
+            <div class="service-card"><div class="service-icon">📧</div><h3>Email-рассылка</h3></div>
+        </div>
+    </section>
+
+    <section id="subscribe" class="subscribe">
+        <h2>Подпишитесь на прогноз</h2>
+        <div class="subscribe-form">
+            <input type="email" id="subEmail" placeholder="Ваш email">
+            <button onclick="showSubscribeMessage()">Подписаться</button>
+        </div>
+        <p id="subMsg" style="margin-top: 15px;"></p>
+    </section>
+
+    <div class="footer">
+        <p>© 2025 Гидрометцентр России | OpenWeatherMap</p>
+    </div>
+
+    <script>
+        // === ВАШ API КЛЮЧ ===
+        const API_KEY = 'b9c3cafd90a4c9728ba6a935bac53318';
+        
+        const cityInput = document.getElementById('cityInput');
+        const getWeatherBtn = document.getElementById('getWeatherBtn');
+        const loader = document.getElementById('loader');
+        const errorMsg = document.getElementById('errorMsg');
+        const weatherIcon = document.getElementById('weatherIcon');
+        const tempSpan = document.getElementById('temp');
+        const descSpan = document.getElementById('desc');
+        const humiditySpan = document.getElementById('humidity');
+        const windSpan = document.getElementById('wind');
+        const pressureSpan = document.getElementById('pressure');
+
+        const weatherEmojis = {
+            '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️',
+            '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
+            '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️',
+            '11d': '⛈️', '11n': '⛈️', '13d': '❄️', '13n': '❄️',
+            '50d': '🌫️', '50n': '🌫️'
+        };
+
+        async function getWeather() {
+            let city = cityInput.value.trim();
+            if (!city) { showError('Введите город'); return; }
+
+            loader.style.display = 'block';
+            errorMsg.style.display = 'none';
+
+            // ПРЯМОЙ ЗАПРОС (через прокси)
+            const proxy = 'https://api.allorigins.win/raw?url=';
+            const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric&lang=ru`;
+            const url = proxy + encodeURIComponent(apiUrl);
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.cod === 200) {
+                    updateUI(data);
+                } else {
+                    showError('Город не найден');
+                }
+            } catch (error) {
+                showError('Ошибка соединения');
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function updateUI(data) {
+            weatherIcon.innerHTML = weatherEmojis[data.weather[0].icon] || '🌍';
+            tempSpan.innerHTML = `${Math.round(data.main.temp)}°C`;
+            descSpan.innerHTML = data.weather[0].description;
+            humiditySpan.innerHTML = data.main.humidity;
+            windSpan.innerHTML = Math.round(data.wind.speed);
+            pressureSpan.innerHTML = data.main.pressure;
+        }
+
+        function showError(msg) {
+            errorMsg.innerHTML = msg;
+            errorMsg.style.display = 'block';
+            setTimeout(() => { errorMsg.style.display = 'none'; }, 4000);
+        }
+
+        function showSubscribeMessage() {
+            const email = document.getElementById('subEmail').value;
+            const msg = document.getElementById('subMsg');
+            if (!email || !email.includes('@')) {
+                msg.innerHTML = '❌ Введите email';
+            } else {
+                msg.innerHTML = '✅ Спасибо!';
+                document.getElementById('subEmail').value = '';
+            }
+            setTimeout(() => { msg.innerHTML = ''; }, 3000);
+        }
+
+        getWeatherBtn.addEventListener('click', getWeather);
+        cityInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') getWeather(); });
+        
+        getWeather();
+    </script>
+</body>
+</html>
